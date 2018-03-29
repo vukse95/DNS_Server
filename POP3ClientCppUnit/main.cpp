@@ -20,7 +20,6 @@ static FSMSystem sys(AUTOMAT_COUNT, MSGBOX_COUNT);
 
 DWORD WINAPI SystemThread(void *data) {
 	ChAuto Channel;
-	ClAuto Client;
 	UserAuto User;
 
 	/* Kernel buffer description block */
@@ -40,9 +39,9 @@ DWORD WINAPI SystemThread(void *data) {
 	sys.InitKernel(buffClassNo, buffsCount, buffsLength, 3, Timer1s);
 
 	/* Add automates to the system */
-	sys.Add(&Channel, CH_AUTOMATE_TYPE_ID, 1, true);
-	sys.Add(&Client, CL_AUTOMATE_TYPE_ID, 1, true);
 	sys.Add(&User, USER_AUTOMATE_TYPE_ID, 1, true);
+	sys.Add(&Channel, CH_AUTOMATE_TYPE_ID, 1, true);
+	
 
 	/* Start the first automate - usually it sends the first message, 
 	since only automates can send messages */

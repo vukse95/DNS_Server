@@ -9,7 +9,7 @@ bool g_ProgramEnd = false;
 
 #define StandardMessageCoding 0x00
 
-UserAuto::UserAuto() : FiniteStateMachine(USER_AUTOMATE_TYPE_ID, USER_AUTOMATE_MBX_ID, 0, 4, 3) {
+UserAuto::UserAuto() : FiniteStateMachine(USER_AUTOMATE_TYPE_ID, USER_AUTOMATE_MBX_ID, 0, 9, 1) {
 }
 
 UserAuto::~UserAuto() {
@@ -58,7 +58,7 @@ void UserAuto::Initialize() {
 	InitEventProc(FSM_Server_Idle_State, MSG_Server_idle, (PROC_FUN_PTR)&UserAuto::FSM_Server_Idle);
 	InitEventProc(FSM_Server_Get_Request_State, MSG_Channel_To_Server_Request, (PROC_FUN_PTR)&UserAuto::FSM_Server_Get_Request);
 	InitEventProc(FSM_Server_Check_Local_Table_State, MSG_Server_Check_Local_Table, (PROC_FUN_PTR)&UserAuto::FSM_Server_Check_Local_Table);
-	InitEventProc(FSM_Server_Check_Local_Table_State, MSG_Server_To_Channel_Request_Sent, (PROC_FUN_PTR)&UserAuto::FSM_Server_Request_In_Table_Found);
+	//InitEventProc(FSM_Server_Check_Local_Table_State, MSG_Server_To_Channel_Request_Sent, (PROC_FUN_PTR)&UserAuto::FSM_Server_Request_In_Table_Found);
 	InitEventProc(FSM_Server_Root_Check_State, MSG_Server_Root_Check, (PROC_FUN_PTR)&UserAuto::FSM_Server_Root_Check);
 	InitEventProc(FSM_Server_No_DNS_State, MSG_Server_To_Channel_Request_Sent, (PROC_FUN_PTR)&UserAuto::FSM_Server_No_DNS);
 	InitEventProc(FSM_Server_Send_Request_State, MSG_Server_To_Channel_Request_To_Root_Sent, (PROC_FUN_PTR)&UserAuto::FSM_Server_Send_Request);
@@ -255,5 +255,3 @@ void UserAuto::FSM_Server_Pass_Request_To_Channel() {
 
 	// Needs MSG FOR IDLE TO BE SET 
 }
-
-

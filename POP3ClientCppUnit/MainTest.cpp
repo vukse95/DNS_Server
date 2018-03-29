@@ -12,7 +12,7 @@ void MainTests::setUp()
     pSys = new FSMSystem(4, 4);
     pMF  = new UserAuto();
 
-    POP3ClientFSM = new ClAuto();
+   // POP3ClientFSM = new ClAuto();
 
    
     uint8 buffClassNo = 4;

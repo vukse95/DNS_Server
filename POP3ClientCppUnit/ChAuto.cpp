@@ -5,7 +5,7 @@
 
 #define StandardMessageCoding 0x00
 
-ChAuto::ChAuto() : FiniteStateMachine(CH_AUTOMATE_TYPE_ID, CH_AUTOMATE_MBX_ID, 1, 6, 3) {
+ChAuto::ChAuto() : FiniteStateMachine(CH_AUTOMATE_TYPE_ID, CH_AUTOMATE_MBX_ID, 1, 8, 3) {
 }
 
 ChAuto::~ChAuto() {
@@ -59,9 +59,13 @@ void ChAuto::Initialize() {
 
 	InitEventProc(FSM_Channel_Switch_State, MSG_Channel_Switch, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Switch);
 
-	InitEventProc(FSM_Channel_Client_Start, MSG_Channel_Client_Start, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Connect);
-	InitEventProc(FSM_Channel_Client, MSG_Channel_Client_Send, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Send);
-	InitEventProc(FSM_Channel_Client, MSG_Channel_Client_Recive, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Recive);
+	InitEventProc(FSM_Channel_Switch_State, MSG_Channel_Server_Send, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Server_Send);
+
+	InitEventProc(FSM_Channel_Switch_State, MSG_Server_To_Channel_Request_To_Root_Sent, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Connect);
+
+	//InitEventProc(FSM_Channel_Client_Start, MSG_Channel_Client_Start, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Connect);
+	//InitEventProc(FSM_Channel_Client, MSG_Channel_Client_Send, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Send);
+	//InitEventProc(FSM_Channel_Client, MSG_Channel_Client_Recive, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Recive);
 }
 
 void ChAuto::FSM_Channel_Idle() {
@@ -136,6 +140,18 @@ void ChAuto::FSM_Channel_Server_Recive() {
 	{
 		printf("Error reciving request from clinet!");
 	}
+
+	PrepareNewMessage(0x00, MSG_Channel_To_Server_Request);
+	SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	AddParam(PARAM_DNS_REQUEST, strlen(ServerInput), (uint8*)ServerInput);
+	SendMessage(USER_AUTOMATE_MBX_ID);
+
+	SetState(FSM_Channel_Switch_State);
+}
+
+void ChAuto::FSM_Channel_Switch() {
+
 }
 
 void ChAuto::FSM_Channel_Server_Send() {
@@ -204,19 +220,18 @@ void ChAuto::FSM_Channel_Client_Connect() {
 		m_Socket = INVALID_SOCKET;
 		return;
 	}
-
-
-
 }
 
 
 void ChAuto::NetMsg_2_FSMMsg(const char* apBuffer, uint16 anBufferLength) {
 
-	PrepareNewMessage(0x00, MSG_MSG);
-	SetMsgToAutomate(CL_AUTOMATE_TYPE_ID);
+	PrepareNewMessage(0x00, MSG_Channel_To_Server_Request_From_Root_Recived);
+	SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
 	SetMsgObjectNumberTo(0);
-	AddParam(PARAM_DATA, anBufferLength, (uint8 *)apBuffer);
-	SendMessage(CL_AUTOMATE_MBX_ID);
+	AddParam(PARAM_SERVER_TO_CHANNEL_CLIENT, anBufferLength, (uint8 *)apBuffer);
+	SendMessage(USER_AUTOMATE_MBX_ID);
+
+	// KIll client
 
 }
 
