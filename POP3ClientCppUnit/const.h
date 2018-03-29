@@ -68,7 +68,7 @@ const uint16 MSG_User_Disconnected = 0x0014;
 
 #define PARAM_DNS_REQUEST 0x01
 #define PARAM_SERVER_TO_CHANNEL 0x02
-#define PARAM_DNS_INPUT 0x03
+#define PARAM_SERVER_TO_CHANNEL_CLIENT 0x03
 
 #define ROOT_STATUS 0 // 0 - Local server, 1 - Root server
 

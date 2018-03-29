@@ -191,24 +191,69 @@ void UserAuto::FSM_Server_No_DNS() {
 
 	SetState(FSM_Server_Idle_State);
 }
+
 void UserAuto::FSM_Server_Send_Request() {
 
+	// Send request to client app
+	PrepareNewMessage(0x00, MSG_Server_To_Channel_Request_To_Root_Sent);
+	SetMsgToAutomate(CH_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	AddParam(PARAM_SERVER_TO_CHANNEL_CLIENT, strlen(DNSRequest), (uint8*)DNSRequest);
+	SendMessage(CH_AUTOMATE_MBX_ID);
 
+	SetState(FSM_Server_Recive_Request_State);
 }
 
-/*
-void UserAuto::FSM_User_Get_Data_From_Client(){
+void UserAuto::FSM_Server_Recive_Request() {
 
-	//char* data = new char[255];
-	uint8* buffer = GetParam(PARAM_DATA);
+	// Get response from client app (root server)
+	uint8* buffer = GetParam(PARAM_SERVER_TO_CHANNEL_CLIENT);
 	uint16 size = buffer[2];
 
-	memcpy(DNSRequestInput, buffer + 4,size);
-	DNSRequestInput[size] = 0;
+	// Get data from Channel
+	memcpy(DNSIPAddress, buffer + 4, size);
+	DNSIPAddress[size] = 0;
 
-	printf("\nDNS_IP: %s", DNSRequestInput);
-	
-	FSM_User_Idle_Set_All(); // Set all FSM-s to IDLE
+	SetState(FSM_Server_Update_Table_State);
 
+	PrepareNewMessage(0x00, MSG_Server_Update_Table);
+	SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	SendMessage(USER_AUTOMATE_MBX_ID);
 }
-*/
+
+void UserAuto::FSM_Server_Update_Table() {
+
+	// Append to file Domain Name and IP Address
+	ofstream tableFile;
+
+	tableFile.open("table.txt");
+
+	if (tableFile.is_open())
+	{
+		tableFile << DNSRequest << endl;
+		tableFile << DNSIPAddress << endl;
+		tableFile.close();
+	}
+
+	PrepareNewMessage(0x00, MSG_Server_To_Channel_Request_Sent);
+	SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	SendMessage(USER_AUTOMATE_MBX_ID);
+
+	SetState(FSM_Server_Pass_Request_To_Channel_State);
+}
+
+void UserAuto::FSM_Server_Pass_Request_To_Channel() {
+	PrepareNewMessage(0x00, MSG_Server_To_Channel_Request_Sent);
+	SetMsgToAutomate(CH_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	AddParam(PARAM_SERVER_TO_CHANNEL, strlen(DNSIPAddress), (uint8*)DNSIPAddress);
+	SendMessage(CH_AUTOMATE_MBX_ID);
+
+	SetState(FSM_Server_Idle_State);
+
+	// Needs MSG FOR IDLE TO BE SET 
+}
+
+
