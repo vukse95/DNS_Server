@@ -7,11 +7,12 @@
 #include "logfile.h"
 #include "ChAuto.h"
 #include "ClAuto.h"
+#include "UserAuto.h"
 
 extern bool g_ProgramEnd;
 
-#define AUTOMAT_COUNT 2
-#define MSGBOX_COUNT 2
+#define AUTOMAT_COUNT 3
+#define MSGBOX_COUNT 3
 
 
 /* FSM system instance. */
@@ -20,6 +21,7 @@ static FSMSystem sys(AUTOMAT_COUNT, MSGBOX_COUNT);
 DWORD WINAPI SystemThread(void *data) {
 	ChAuto Channel;
 	ClAuto Client;
+	UserAuto User;
 
 	/* Kernel buffer description block */
 	/* number of buffer types */
@@ -40,11 +42,11 @@ DWORD WINAPI SystemThread(void *data) {
 	/* Add automates to the system */
 	sys.Add(&Channel, CH_AUTOMATE_TYPE_ID, 1, true);
 	sys.Add(&Client, CL_AUTOMATE_TYPE_ID, 1, true);
+	sys.Add(&User, USER_AUTOMATE_TYPE_ID, 1, true);
 
 	/* Start the first automate - usually it sends the first message, 
 	since only automates can send messages */
-	
-	//User.Start();
+	User.Start();
 
 	/* Starts the system - dispatches system messages */
 	printf("[*] Starting system...\n");
@@ -63,7 +65,7 @@ void mainProgram(int argc, char* argv[]) {
 	thread_handle = CreateThread(NULL, 0, SystemThread, NULL, 0, &thread_id);
 
 	/* Wait for end. */
-	//while(!g_ProgramEnd){}
+	while(!g_ProgramEnd){}
 	getch();
 	
 

@@ -3,6 +3,8 @@
 
 #include <fsm.h>
 #include <fsmsystem.h>
+#include <cstring>
+#include <fstream>
 
 #include "../kernel/stdMsgpc16pl16.h"
 #include "NetFSM.h"
@@ -30,24 +32,21 @@ public:
 	
 	void Initialize();
 	
-	void FSM_Cl_Ready_User_Check_Mail();
-	void FSM_Cl_Connecting_Cl_Connection_Reject();
-	void FSM_Cl_Connecting_Cl_Connectiong_Accept();
-	void FSM_Cl_Authorising_User_Name_Password();
-	void FSM_Cl_User_Check_MSG();
-	void FSM_Cl_Pass_Check_MSG();
-	void FSM_Cl_Mail_Check_MSG();
-	void FSM_Cl_Receiving_MSG();
-	void FSM_Cl_Deleting_MSG();
-	void FSM_Cl_Reseting_MSG();
-	void FSM_Cl_Disconnecting_Cl_Disconected();
-	void SendQuit();
+	void FSM_Client_Idle_State();
+	void FSM_Client_Get_Data_From_User();
+	void FSM_Client_Check_In_Local_Table();
+	void FSM_Client_Pass_DNS_Request_To_Channel();
+	void FSM_Client_Get_DNS_Request_From_Channel();
+	void FSM_Client_Pass_DNS_Request_To_Client();
+	void FSM_Client_Timer_Expired();
 
+
+	
 protected:
 
-	int m_MessageCount;
-	char m_UserName[20];
-	char m_Password[20];
+	char DNSRequestInput[256];
+	char DNSRequestOutput[256];
+
 };
 
-#endif /* _Cl_AUTO_H */
+#endif /*_Cl_AUTO_H */

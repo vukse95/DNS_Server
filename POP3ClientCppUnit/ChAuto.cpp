@@ -5,7 +5,7 @@
 
 #define StandardMessageCoding 0x00
 
-ChAuto::ChAuto() : FiniteStateMachine(CH_AUTOMATE_TYPE_ID, CH_AUTOMATE_MBX_ID, 1, 3, 3) {
+ChAuto::ChAuto() : FiniteStateMachine(CH_AUTOMATE_TYPE_ID, CH_AUTOMATE_MBX_ID, 1, 6, 3) {
 }
 
 ChAuto::~ChAuto() {
@@ -48,16 +48,17 @@ void ChAuto::Reset() {
 
 void ChAuto::Initialize() {
 	SetState(FSM_Channel_Idle_State);
-	
+
 	//intitialization message handlers
 	InitEventProc(FSM_Channel_Idle_State, MSG_Channel_Idle, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Idle);
-	
+
 	InitEventProc(FSM_Channel_Server_Start, MSG_Channel_Server_Start, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Start_Server);
-	InitEventProc(FSM_Channel_Server, MSG_Channel_Server_Send, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Server_Recive);
+	InitEventProc(FSM_Channel_Server, MSG_Channel_Server_Send, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Server_Send);
+	InitEventProc(FSM_Channel_Server, MSG_Channel_Server_Recive, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Server_Recive);
 	InitEventProc(FSM_Channel_Server_Disconnect_State, MSG_Channel_Server_Disconnect, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Server_Disconnect);
-	
+
 	InitEventProc(FSM_Channel_Switch_State, MSG_Channel_Switch, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Switch);
-	
+
 	InitEventProc(FSM_Channel_Client_Start, MSG_Channel_Client_Start, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Connect);
 	InitEventProc(FSM_Channel_Client, MSG_Channel_Client_Send, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Send);
 	InitEventProc(FSM_Channel_Client, MSG_Channel_Client_Recive, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Recive);
@@ -75,9 +76,6 @@ void ChAuto::FSM_Channel_Idle() {
 }
 
 void ChAuto::FSM_Channel_Start_Server() {
-
-	int c;
-
 
 	printf("\nInitialising Winsock...");
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -99,7 +97,7 @@ void ChAuto::FSM_Channel_Start_Server() {
 	//Prepare the sockaddr_in structure
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(8888);
+	server.sin_port = htons(SERVER_PORT);
 
 	//Bind
 	if (bind(s, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
@@ -125,7 +123,23 @@ void ChAuto::FSM_Channel_Start_Server() {
 
 	puts("Connection accepted");
 
-	
+	SetState(FSM_Channel_Server);
+
+	PrepareNewMessage(0x00, MSG_Channel_Server_Recive);
+	SetMsgToAutomate(CH_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	SendMessage(CH_AUTOMATE_MBX_ID);
+}
+
+void ChAuto::FSM_Channel_Server_Recive() {
+	if (recv(c, ServerInput, strlen(ServerInput), 0))
+	{
+		printf("Error reciving request from clinet!");
+	}
+}
+
+void ChAuto::FSM_Channel_Server_Send() {
+
 }
 
 void ChAuto::FSM_Channel_Server_Disconnect() {
@@ -133,46 +147,43 @@ void ChAuto::FSM_Channel_Server_Disconnect() {
 	WSACleanup();
 }
 
-void ChAuto::FSM_Channel_Client_Connect(){
+void ChAuto::FSM_Channel_Client_Connect() {
 
-	
-	SetState(FSM_Ch_Connecting);
-	
 	WSAData wsaData;
-	if (WSAStartup(MAKEWORD(2, 1), &wsaData) != 0) 
+	if (WSAStartup(MAKEWORD(2, 1), &wsaData) != 0)
 	{
 		return;
-	} 
+	}
 
 	/* Try to resolve the server name. */
 	sockaddr_in server_addr;
-    memset(&server_addr, 0, sizeof(server_addr));
-	
+	memset(&server_addr, 0, sizeof(server_addr));
+
 	unsigned int addr = inet_addr(ADRESS);
-	if (addr != INADDR_NONE) 
+	if (addr != INADDR_NONE)
 	{
-        server_addr.sin_addr.s_addr	= addr;
-        server_addr.sin_family		= AF_INET;
-    }
-    else 
+		server_addr.sin_addr.s_addr = addr;
+		server_addr.sin_family = AF_INET;
+	}
+	else
 	{
-        hostent* hp = gethostbyname(ADRESS);
-        if (hp != 0)  
+		hostent* hp = gethostbyname(ADRESS);
+		if (hp != 0)
 		{
-            memcpy( &(server_addr.sin_addr), hp->h_addr, hp->h_length );
-            server_addr.sin_family = hp->h_addrtype;
-        }
-        else 
+			memcpy(&(server_addr.sin_addr), hp->h_addr, hp->h_length);
+			server_addr.sin_family = hp->h_addrtype;
+		}
+		else
 		{
-			return ;
-        }
-    }
+			return;
+		}
+	}
 	server_addr.sin_port = htons(PORT);
 
-	/* Create the socket. */ 
+	/* Create the socket. */
 	m_Socket = socket(PF_INET, SOCK_STREAM, 0);
 	if (m_Socket == INVALID_SOCKET) {
-		return ;
+		return;
 	}
 
 	/* Try to reach the server. */
@@ -180,53 +191,54 @@ void ChAuto::FSM_Channel_Client_Connect(){
 		/* Here some additional cleanup should be done. */
 		closesocket(m_Socket);
 		m_Socket = INVALID_SOCKET;
-		return ;
+		return;
 	}
 
 
 
 	/* Then, start the thread that will listen on the the newly created socket. */
-	m_hThread = CreateThread(NULL, 0, ClientListener, (LPVOID) this, 0, &m_nThreadID); 
+	m_hThread = CreateThread(NULL, 0, ClientListener, (LPVOID)this, 0, &m_nThreadID);
 	if (m_hThread == NULL) {
 		/* Cannot create thread.*/
 		closesocket(m_Socket);
 		m_Socket = INVALID_SOCKET;
-		return ;
+		return;
 	}
 
-	
-	
+
+
 }
 
 
 void ChAuto::NetMsg_2_FSMMsg(const char* apBuffer, uint16 anBufferLength) {
-	
+
 	PrepareNewMessage(0x00, MSG_MSG);
 	SetMsgToAutomate(CL_AUTOMATE_TYPE_ID);
 	SetMsgObjectNumberTo(0);
-	AddParam(PARAM_DATA,anBufferLength,(uint8 *)apBuffer);
+	AddParam(PARAM_DATA, anBufferLength, (uint8 *)apBuffer);
 	SendMessage(CL_AUTOMATE_MBX_ID);
-	
+
 }
 
 DWORD ChAuto::ClientListener(LPVOID param) {
-	ChAuto* pParent = (ChAuto*) param;
-	int nReceivedBytes;
+	ChAuto* pParent = (ChAuto*)param;
+	int nReceivedBytes = 0;
 	char* buffer = new char[255];
 
-	nReceivedBytes = recv(pParent->m_Socket, buffer, 255, 0);
+	//nReceivedBytes = recv(pParent->m_Socket, buffer, 255, 0);
 	if (nReceivedBytes < 0) {
-			DWORD err = WSAGetLastError();
-	}else{
-		pParent->FSM_Ch_Connecting_Sock_Connection_Acccept();
-		
-		/* Receive data from the network until the socket is closed. */ 
+		DWORD err = WSAGetLastError();
+	}
+	else {
+		//pParent->FSM_Ch_Connecting_Sock_Connection_Acccept();
+
+		/* Receive data from the network until the socket is closed. */
 		do {
 			nReceivedBytes = recv(pParent->m_Socket, buffer, 255, 0);
 			if (nReceivedBytes == 0)
 			{
 				printf("Disconnected from server!\n");
-				pParent->FSM_Ch_Connected_Sock_Disconected();
+				pParent->FSM_Channel_Server_Disconnect();
 				break;
 			}
 			if (nReceivedBytes < 0) {
@@ -236,12 +248,12 @@ DWORD ChAuto::ClientListener(LPVOID param) {
 			}
 			pParent->NetMsg_2_FSMMsg(buffer, nReceivedBytes);
 
-			Sleep(1000); 
-			
-		} while(1);
+			Sleep(1000);
+
+		} while (1);
 
 	}
 
-	delete [] buffer;
+	delete[] buffer;
 	return 1;
 }

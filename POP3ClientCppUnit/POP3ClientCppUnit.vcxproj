@@ -112,10 +112,10 @@
     <ClInclude Include="..\Kernel\UdpLogInterface.h" />
     <ClInclude Include="..\Kernel\uniSock.h" />
     <ClInclude Include="ChAuto.h" />
-    <ClInclude Include="ClAuto.h" />
     <ClInclude Include="const.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MainTest.h" />
+    <ClInclude Include="UserAuto.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Kernel\buffers.cpp" />
@@ -146,10 +146,10 @@
     <ClCompile Include="..\Kernel\UdpFSM.cpp" />
     <ClCompile Include="..\Kernel\UdpLogInterface.cpp" />
     <ClCompile Include="ChAuto.cpp" />
-    <ClCompile Include="ClAuto.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainTest.cpp" />
     <ClCompile Include="RUN.cpp" />
+    <ClCompile Include="UserAuto.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

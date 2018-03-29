@@ -10,7 +10,7 @@ uint16 msgcode;
 void MainTests::setUp()
 {
     pSys = new FSMSystem(4, 4);
-    //pMF  = new UserAuto();
+    pMF  = new UserAuto();
 
     POP3ClientFSM = new ClAuto();
 
@@ -26,7 +26,7 @@ void MainTests::setUp()
 
    
     pSys->Add(POP3ClientFSM, CL_AUTOMATE_TYPE_ID, 1, true);
-    //pSys->Add(pMF, TEST_AUTOMATE_TYPE_ID, 1, true);
+    pSys->Add(pMF, TEST_AUTOMATE_TYPE_ID, 1, true);
 }
 
 void MainTests::tearDown()

@@ -17,10 +17,10 @@
     <ClInclude Include="MainTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChAuto.h">
+    <ClInclude Include="UserAuto.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ClAuto.h">
+    <ClInclude Include="ChAuto.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="const.h">
@@ -133,10 +133,10 @@
     <ClCompile Include="ChAuto.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ClAuto.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="UserAuto.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Kernel\buffers.cpp">

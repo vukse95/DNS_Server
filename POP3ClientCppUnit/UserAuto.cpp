@@ -9,7 +9,7 @@ bool g_ProgramEnd = false;
 
 #define StandardMessageCoding 0x00
 
-UserAuto::UserAuto() : FiniteStateMachine(USER_AUTOMATE_TYPE_ID, USER_AUTOMATE_MBX_ID, 0, 3, 3) {
+UserAuto::UserAuto() : FiniteStateMachine(USER_AUTOMATE_TYPE_ID, USER_AUTOMATE_MBX_ID, 0, 4, 3) {
 }
 
 UserAuto::~UserAuto() {
@@ -52,140 +52,163 @@ void UserAuto::Reset() {
 
 
 void UserAuto::Initialize() {
-	SetState(FSM_User_Idle);	
+	SetState(FSM_Server_Idle_State);
 	
 	//intitialization message handlers
-	InitEventProc(FSM_User_Idle, MSG_Set_All, (PROC_FUN_PTR)&UserAuto::FSM_User_Idle_Set_All);
-	InitEventProc(FSM_User_Connecting, MSG_User_Connected, (PROC_FUN_PTR)&UserAuto::FSM_User_Connecting_User_Connected);
-	InitEventProc(FSM_User_Connecting, MSG_User_Connecton_Fail, (PROC_FUN_PTR)&UserAuto::FSM_User_Connecting_User_Connecton_Fail);
-	InitEventProc(FSM_User_Connected, MSG_Mail, (PROC_FUN_PTR)&UserAuto::FSM_User_Connected_Mail);
-	InitEventProc(FSM_User_Connected, MSG_User_Save_Mail, (PROC_FUN_PTR)&UserAuto::FSM_User_Connected_User_Save_Mail);
-	InitEventProc(FSM_User_Connected, MSG_User_Disconnected, (PROC_FUN_PTR)&UserAuto::FSM_User_Connected_User_Disconnected);
+	InitEventProc(FSM_Server_Idle_State, MSG_Server_idle, (PROC_FUN_PTR)&UserAuto::FSM_Server_Idle);
+	InitEventProc(FSM_Server_Get_Request_State, MSG_Channel_To_Server_Request, (PROC_FUN_PTR)&UserAuto::FSM_Server_Get_Request);
+	InitEventProc(FSM_Server_Check_Local_Table_State, MSG_Server_Check_Local_Table, (PROC_FUN_PTR)&UserAuto::FSM_Server_Check_Local_Table);
+	InitEventProc(FSM_Server_Check_Local_Table_State, MSG_Server_To_Channel_Request_Sent, (PROC_FUN_PTR)&UserAuto::FSM_Server_Request_In_Table_Found);
+	InitEventProc(FSM_Server_Root_Check_State, MSG_Server_Root_Check, (PROC_FUN_PTR)&UserAuto::FSM_Server_Root_Check);
+	InitEventProc(FSM_Server_No_DNS_State, MSG_Server_To_Channel_Request_Sent, (PROC_FUN_PTR)&UserAuto::FSM_Server_No_DNS);
+	InitEventProc(FSM_Server_Send_Request_State, MSG_Server_To_Channel_Request_To_Root_Sent, (PROC_FUN_PTR)&UserAuto::FSM_Server_Send_Request);
+	InitEventProc(FSM_Server_Recive_Request_State, MSG_Channel_To_Server_Request_From_Root_Recived, (PROC_FUN_PTR)&UserAuto::FSM_Server_Recive_Request);
+	InitEventProc(FSM_Server_Update_Table_State, MSG_Server_Update_Table, (PROC_FUN_PTR)&UserAuto::FSM_Server_Update_Table);
+	InitEventProc(FSM_Server_Pass_Request_To_Channel_State, MSG_Server_To_Channel_Request_Sent, (PROC_FUN_PTR)&UserAuto::FSM_Server_Pass_Request_To_Channel);
 }
 
-void UserAuto::FSM_User_Idle_Set_All(){
-
-	PrepareNewMessage(0x00, MSG_User_Check_Mail);
-	SetMsgToAutomate(CL_AUTOMATE_TYPE_ID);
-	SetMsgObjectNumberTo(0);
-	SendMessage(CL_AUTOMATE_MBX_ID);
-
-	SetState(FSM_User_Connecting);
-}
-
-void UserAuto::FSM_User_Connecting_User_Connected(){
-
-	char name[20];
-	char pass[20];
-	//printf("Username: ");
-	//scanf("%s",name);
-	strcpy(name,"Milos\0");
-	//printf("Pasword: ");
-	//scanf("%s",pass);
-	strcpy(pass,"12345\0");
-
-	
-	PrepareNewMessage(0x00, MSG_User_Name_Password);
-	SetMsgToAutomate(CL_AUTOMATE_TYPE_ID);
-	SetMsgObjectNumberTo(0);
-	AddParam(PARAM_Name,strlen(name),(uint8*)name);
-	AddParam(PARAM_Pass,strlen(pass),(uint8*)pass);
-	SendMessage(CL_AUTOMATE_MBX_ID);
-
-	SetState(FSM_User_Connected);
-
-	m_File = fopen("temp.dat","w+b");
-}
-
-void UserAuto::FSM_User_Connecting_User_Connecton_Fail(){
-
-	printf("Connection fail!!!\n");
-	
-	g_ProgramEnd = true;
-
-	SetState(FSM_User_Idle);
-
-}
-
-void UserAuto::FSM_User_Connected_Mail(){
-
-	char* data = new char[256];
-	uint8* buffer = GetParam(PARAM_DATA);
-	uint16 size = buffer[2];
-
-	memcpy(data,buffer + 4,size);
-	data[size]=0;
-	fprintf(m_File,"%s",data);
-	//printf("%s",data);
-	//printf("\n---------------------------------------------------------------------\n");
-
-	//delete [] data;
-}
-
-void UserAuto::FSM_User_Connected_User_Save_Mail(){
-
-	rewind(m_File);
-
-	time_t ltime;
-	time( &ltime );
-    
-	char* data = new char[1000];
-
-	bool l_End = false;
-
-	while( !feof(m_File) && !l_End){
-
-		fgets(data,1000,m_File);
-
-		char* temp = strstr(data,"Subject:");
-		if( temp != NULL){
-			l_End = true; // end of search for "Subject:"
-			
-			int i = 0 ,j = 0;
-			temp += 9;
-
-			while((j<20) && (temp[i] != '\r') ){
-				if(isalpha(temp[i]) || isdigit(temp[i]) || isspace(temp[i])){
-					m_FileName[j] = temp[i];
-					j++;
-				}
-				i++;
-			}
-			memcpy(m_FileName+j,".dat\0",5);
-
-			printf("Mail saved in file: %s\n",m_FileName);
-		}
-
-	}
-
-	fclose(m_File);
-	
-	rename("temp.dat",m_FileName);
-
-	m_File = fopen("temp.dat","w+b");
-	
-	delete [] data;
-}
-
-void UserAuto::FSM_User_Connected_User_Disconnected(){
-
-	printf("User disconnected!\n");
-
-	fclose(m_File);
-		
-	remove("temp.dat");
-
-	g_ProgramEnd = true;
-
-	SetState(FSM_User_Idle);
-}
-
-// Automat sam sebi salje poruku za start sistema.
 void UserAuto::Start(){
 
-	PrepareNewMessage(0x00, MSG_Set_All);
+	// Set Server to IDLE
+	PrepareNewMessage(0x00, MSG_Server_idle);
+	SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	SendMessage(USER_AUTOMATE_MBX_ID);
+
+	// Set Channel to IDLE
+	PrepareNewMessage(0x00, MSG_Channel_Idle);
+	SetMsgToAutomate(CH_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	SendMessage(CH_AUTOMATE_MBX_ID);
+
+	//SetState(FSM_User_Data_Input);
+}
+
+void UserAuto::FSM_Server_Idle(){
+	
+	SetState(FSM_Server_Get_Request_State);
+}
+
+void UserAuto::FSM_Server_Get_Request(){
+
+	uint8* buffer = GetParam(PARAM_DNS_REQUEST);
+	uint16 size = buffer[2];
+
+	// Get data from Channel
+	memcpy(DNSRequest, buffer + 4, size);
+	DNSRequest[size] = 0;
+
+	SetState(FSM_Server_Check_Local_Table_State);
+
+	PrepareNewMessage(0x00, MSG_Server_Check_Local_Table);
 	SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
 	SetMsgObjectNumberTo(0);
 	SendMessage(USER_AUTOMATE_MBX_ID);
 
 }
+
+void UserAuto::FSM_Server_Check_Local_Table(){
+
+	// Check in table
+	string line;
+	string search;
+	ifstream tableFile("table.txt");
+	size_t pos;
+	int foundFlag = 0;
+
+	// Copy from char* to String
+	search.copy(DNSRequest, (unsigned)strlen(DNSRequest));
+
+	if (tableFile.is_open())
+	{
+		while (tableFile.good())
+		{
+			getline(tableFile, line); // get line from file
+			pos = line.find(search); // search
+			if (pos != string::npos) // string::npos is returned if string is not found
+			{
+				cout << "Found!";
+				getline(tableFile, line); // hop to next line to get IP address
+				strcpy(DNSIPAddress, line.c_str()); // Copy from string to char* array
+				foundFlag = 1;
+				break;
+			}
+		}
+		tableFile.close();
+	}
+	if (foundFlag)
+	{
+		// IP found in local table, skip sending part
+		PrepareNewMessage(0x00, MSG_Server_To_Channel_Request_Sent);
+		SetMsgToAutomate(CH_AUTOMATE_TYPE_ID);
+		SetMsgObjectNumberTo(0);
+		AddParam(PARAM_SERVER_TO_CHANNEL, strlen(DNSIPAddress), (uint8*)DNSIPAddress);
+		SendMessage(CH_AUTOMATE_MBX_ID);
+
+		SetState(FSM_Server_Idle_State);
+	}
+	else
+	{
+		PrepareNewMessage(0x00, MSG_Server_Root_Check);
+		SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
+		SetMsgObjectNumberTo(0);
+		SendMessage(USER_AUTOMATE_MBX_ID);
+
+		SetState(FSM_Server_Root_Check_State);
+	}
+}
+
+void UserAuto::FSM_Server_Root_Check() {
+	if (ROOT_STATUS)
+	{
+		// Root server
+		PrepareNewMessage(0x00, MSG_Server_To_Channel_Request_Sent);
+		SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
+		SetMsgObjectNumberTo(0);
+		SendMessage(USER_AUTOMATE_MBX_ID);
+
+		SetState(FSM_Server_No_DNS_State);
+	}
+	else
+	{
+		// Local server
+		PrepareNewMessage(0x00, MSG_Server_To_Channel_Request_To_Root_Sent);
+		SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
+		SetMsgObjectNumberTo(0);
+		SendMessage(USER_AUTOMATE_MBX_ID);
+
+		SetState(FSM_Server_Send_Request_State);
+	}
+}
+
+void UserAuto::FSM_Server_No_DNS() {
+	// TODO: NO IP WRITE TO DNSIPAddress (0.0.0.0)
+	PrepareNewMessage(0x00, MSG_Server_To_Channel_Request_Sent);
+	SetMsgToAutomate(CH_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	AddParam(PARAM_SERVER_TO_CHANNEL, strlen(DNSIPAddress), (uint8*)DNSIPAddress);
+	SendMessage(CH_AUTOMATE_MBX_ID);
+
+	SetState(FSM_Server_Idle_State);
+}
+void UserAuto::FSM_Server_Send_Request() {
+
+
+}
+
+/*
+void UserAuto::FSM_User_Get_Data_From_Client(){
+
+	//char* data = new char[255];
+	uint8* buffer = GetParam(PARAM_DATA);
+	uint16 size = buffer[2];
+
+	memcpy(DNSRequestInput, buffer + 4,size);
+	DNSRequestInput[size] = 0;
+
+	printf("\nDNS_IP: %s", DNSRequestInput);
+	
+	FSM_User_Idle_Set_All(); // Set all FSM-s to IDLE
+
+}
+*/

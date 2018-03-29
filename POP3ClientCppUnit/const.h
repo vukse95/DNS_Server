@@ -16,18 +16,13 @@ const uint8 USER_AUTOMATE_MBX_ID = 0x02;
 const uint8 TEST_MBX_ID = 0x03;
 
 //	Client states
-enum ClStates {	FSM_Cl_Ready, 
-				FSM_Cl_Connecting, 
-				FSM_Cl_Authorising,
-				FSM_Cl_User_Check,
-				FSM_Cl_Pass_Check,
-				FSM_Cl_Mail_Check,
-				FSM_Cl_Receiving,
-				FSM_Cl_Deleting,
-				FSM_Cl_Reseting,
-				FSM_Cl_Disconnecting };
+enum ClStates {	FSM_Client_Idle,
+				FSM_Client_Check_Local_Table,
+				FSM_Client_Input_From_User, 
+				FSM_Client_DNS_Request,
+				FSM_Client_DNS_Recived };
 
-// channel messages
+// Channel messages
 const uint16 MSG_Channel_Idle				= 0x0001;
 const uint16 MSG_Channel_Server_Start		= 0x0002;
 const uint16 MSG_Channel_Server_Recive		= 0x0003;
@@ -40,34 +35,42 @@ const uint16 MSG_Channel_Client_Start		= 0x0006;
 const uint16 MSG_Channel_Client_Send		= 0x0007;
 const uint16 MSG_Channel_Client_Recive		= 0x0008;
 
-// client messages
-const uint16 MSG_Cl_Connection_Reject	= 0x000a;
-const uint16 MSG_Cl_Connection_Accept	= 0x000b;
-const uint16 MSG_User_Name_Password		= 0x000c;
-const uint16 MSG_MSG					= 0x000d;
-const uint16 MSG_Cl_Disconected			= 0x000f;
+// Server(user) messages
+const uint16 MSG_Server_idle					= 0x000a;
+const uint16 MSG_Channel_To_Server_Request		= 0x000b;
+const uint16 MSG_Server_To_Channel_Request_Sent	= 0x000c;
+const uint16 MSG_Server_Check_Local_Table	    = 0x000d;
+const uint16 MSG_Server_Root_Check			    = 0x000f;
+const uint16 MSG_Server_To_Channel_Request_To_Root_Sent = 0x0010;
+const uint16 MSG_Channel_To_Server_Request_From_Root_Recived = 0x0011;
+const uint16 MSG_Server_Update_Table = 0x0012;
 
-// user messages
-const uint16 MSG_Set_All				= 0x0010;
-const uint16 MSG_User_Connected			= 0x0011;
-const uint16 MSG_User_Connecton_Fail	= 0x0012;
-const uint16 MSG_Mail					= 0x0013;
-const uint16 MSG_User_Save_Mail			= 0x0015;
-const uint16 MSG_User_Disconnected		= 0x0014;
 
+/*
+const uint16 MSG_Mail = 0x0013;
+const uint16 MSG_User_Save_Mail = 0x0015;
+const uint16 MSG_User_Disconnected = 0x0014;
+*/
 
 #define ADRESS "localhost"
 //#define ADRESS "mail.spymac.com"
 //#define ADRESS "krtlab8"
 #define PORT 110
+#define SERVER_PORT 111
 
 #define TIMER1_ID 0
 #define TIMER1_COUNT 10
 #define TIMER1_EXPIRED 0x20
 
-#define PARAM_DATA 0x01
-#define PARAM_Name 0x02
-#define PARAM_Pass 0x03
+#define TIMER2_ID 1
+#define TIMER2_COUNT 10 //NOT SURE WHAT TIME - NOT IMPORTANT FOR NOW
+#define TIMER2_EXPIRED 0x30
+
+#define PARAM_DNS_REQUEST 0x01
+#define PARAM_SERVER_TO_CHANNEL 0x02
+#define PARAM_DNS_INPUT 0x03
+
+#define ROOT_STATUS 0 // 0 - Local server, 1 - Root server
 
 
 #endif //_CONST_H_

@@ -3,9 +3,12 @@
 
 #include <fsm.h>
 #include <fsmsystem.h>
+#include <cstring>
+#include <fstream>
 
 #include "../kernel/stdMsgpc16pl16.h"
 #include "NetFSM.h"
+
 
 
 class UserAuto : public FiniteStateMachine {
@@ -24,9 +27,15 @@ class UserAuto : public FiniteStateMachine {
 	void	ResetData();
 	
 	// FSM States
-	enum	UserStates {FSM_User_Idle, 
-						FSM_User_Connecting, 
-						FSM_User_Connected };
+	enum	UserStates {FSM_Server_Idle_State, 
+						FSM_Server_Get_Request_State,
+						FSM_Server_Check_Local_Table_State,
+						FSM_Server_Root_Check_State,
+						FSM_Server_No_DNS_State,
+						FSM_Server_Send_Request_State,
+						FSM_Server_Recive_Request_State,
+						FSM_Server_Update_Table_State,
+						FSM_Server_Pass_Request_To_Channel_State };
 
 	
 public:
@@ -35,19 +44,25 @@ public:
 	
 	void Initialize();
 	
-	void FSM_User_Idle_Set_All();
-	void FSM_User_Connecting_User_Connected();
-	void FSM_User_Connecting_User_Connecton_Fail();
-	void FSM_User_Connected_Mail();
-	void FSM_User_Connected_User_Save_Mail();
-	void FSM_User_Connected_User_Disconnected();
+	void FSM_Server_Idle();
+	void FSM_Server_Get_Request();
+	void FSM_Server_Check_Local_Table();
+	void FSM_Server_Request_In_Table_Found();
+	void FSM_Server_Root_Check();
+	void FSM_Server_No_DNS();
+
+	void FSM_Server_Send_Request();
+	void FSM_Server_Recive_Request();
+
+	void FSM_Server_Update_Table();
+	void FSM_Server_Pass_Request_To_Channel();
 
 	void Start();
 	
 protected:
 	
-	FILE* m_File;
-	char m_FileName[256];
+	char DNSRequest[256];
+	char DNSIPAddress[256]; // IP hasn't got 256 char...
 	
 };
 
