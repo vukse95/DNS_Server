@@ -176,7 +176,7 @@ void UserAuto::FSM_Server_Check_Local_Table(){
 }
 
 void UserAuto::FSM_Server_Root_Check() {
-	if (ROOT_STATUS)
+	if (ROOT_STATUS > 0)
 	{
 		// Root server
 		PrepareNewMessage(0x00, MSG_Server_To_Channel_Request_Sent);
@@ -200,6 +200,16 @@ void UserAuto::FSM_Server_Root_Check() {
 
 void UserAuto::FSM_Server_No_DNS() {
 	// TODO: NO IP WRITE TO DNSIPAddress (0.0.0.0)
+
+	DNSIPAddress[0] = '0';
+	DNSIPAddress[1] = '.';
+	DNSIPAddress[2] = '0';
+	DNSIPAddress[3] = '.';
+	DNSIPAddress[4] = '0';
+	DNSIPAddress[5] = '.';
+	DNSIPAddress[6] = '0';
+	DNSIPAddress[7] = '\0';
+
 	PrepareNewMessage(0x00, MSG_Server_To_Channel_Request_Sent);
 	SetMsgToAutomate(CH_AUTOMATE_TYPE_ID);
 	SetMsgObjectNumberTo(0);

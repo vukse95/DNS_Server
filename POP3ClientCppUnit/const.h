@@ -70,7 +70,7 @@ const uint16 MSG_User_Disconnected = 0x0014;
 #define PARAM_SERVER_TO_CHANNEL 0x02
 #define PARAM_SERVER_TO_CHANNEL_CLIENT 0x03
 
-#define ROOT_STATUS 0 // 0 - Local server, 1 - Root server
+#define ROOT_STATUS 1 // 0 - Local server, 1 - Root server
 
 
 #endif //_CONST_H_
