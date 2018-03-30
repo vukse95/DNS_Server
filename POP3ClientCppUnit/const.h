@@ -45,7 +45,7 @@ const uint16 MSG_Server_To_Channel_Request_To_Root_Sent = 0x0010;
 const uint16 MSG_Channel_To_Server_Request_From_Root_Recived = 0x0011;
 const uint16 MSG_Server_Update_Table = 0x0012;
 
-
+const uint16 ROOT_STATUS = 1;
 /*
 const uint16 MSG_Mail = 0x0013;
 const uint16 MSG_User_Save_Mail = 0x0015;
@@ -70,7 +70,7 @@ const uint16 MSG_User_Disconnected = 0x0014;
 #define PARAM_SERVER_TO_CHANNEL 0x02
 #define PARAM_SERVER_TO_CHANNEL_CLIENT 0x03
 
-#define ROOT_STATUS 1 // 0 - Local server, 1 - Root server
+//#define ROOT_STATUS 1 // 0 - Local server, 1 - Root server
 
 
 #endif //_CONST_H_
