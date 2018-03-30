@@ -112,12 +112,14 @@ void UserAuto::FSM_Server_Check_Local_Table(){
 	// Check in table
 	string line;
 	string search;
-	ifstream tableFile("table.txt");
+	ifstream tableFile;
 	size_t pos;
 	int foundFlag = 0;
 
 	// Copy from char* to String
 	search.copy(DNSRequest, (unsigned)strlen(DNSRequest));
+
+	tableFile.open("table.txt");
 
 	if (tableFile.is_open())
 	{
@@ -135,6 +137,10 @@ void UserAuto::FSM_Server_Check_Local_Table(){
 			}
 		}
 		tableFile.close();
+	}
+	else
+	{
+		printf("Can't open table file!!");
 	}
 	if (foundFlag)
 	{

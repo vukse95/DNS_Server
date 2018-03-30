@@ -59,7 +59,7 @@ void ChAuto::Initialize() {
 
 	InitEventProc(FSM_Channel_Switch_State, MSG_Channel_Switch, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Switch);
 
-	InitEventProc(FSM_Channel_Switch_State, MSG_Channel_Server_Send, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Server_Send);
+	InitEventProc(FSM_Channel_Switch_State, MSG_Server_To_Channel_Request_Sent, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Server_Send);
 
 	InitEventProc(FSM_Channel_Switch_State, MSG_Server_To_Channel_Request_To_Root_Sent, (PROC_FUN_PTR)&ChAuto::FSM_Channel_Client_Connect);
 
@@ -136,11 +136,22 @@ void ChAuto::FSM_Channel_Start_Server() {
 }
 
 void ChAuto::FSM_Channel_Server_Recive() {
-	if (recv(c, ServerInput, strlen(ServerInput), 0))
+
+	int nReceivedBytes;
+
+	while (1)
 	{
-		printf("Error reciving request from clinet!");
+		nReceivedBytes = recv(new_socket, ServerInput, strlen(ServerInput), 0);
+		if (nReceivedBytes > 0)
+		{
+			printf("%s", ServerInput);
+			break;
+		}
+		Sleep(100);
 	}
 
+	//a mogao sam u while samo da stavim, al ...
+	
 	PrepareNewMessage(0x00, MSG_Channel_To_Server_Request);
 	SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
 	SetMsgObjectNumberTo(0);
@@ -148,6 +159,7 @@ void ChAuto::FSM_Channel_Server_Recive() {
 	SendMessage(USER_AUTOMATE_MBX_ID);
 
 	SetState(FSM_Channel_Switch_State);
+
 }
 
 void ChAuto::FSM_Channel_Switch() {
@@ -155,12 +167,30 @@ void ChAuto::FSM_Channel_Switch() {
 }
 
 void ChAuto::FSM_Channel_Server_Send() {
+	// Get response from client app (root server)
+	uint8* buffer = GetParam(PARAM_SERVER_TO_CHANNEL);
+	uint16 size = buffer[2];
 
+	// Get data from Channel
+	memcpy(ServerOutput, buffer + 4, size);
+	ServerOutput[size] = 0;
+	
+	send(new_socket, ServerOutput, strlen(ServerOutput), 0);
+
+	FSM_Channel_Server_Disconnect();
+
+	PrepareNewMessage(0x00, MSG_Channel_Idle);
+	SetMsgToAutomate(CH_AUTOMATE_TYPE_ID);
+	SetMsgObjectNumberTo(0);
+	SendMessage(CH_AUTOMATE_MBX_ID);
+
+	SetState(FSM_Channel_Idle_State);
 }
 
 void ChAuto::FSM_Channel_Server_Disconnect() {
 	closesocket(s);
 	WSACleanup();
+	printf("\nDisconnected");
 }
 
 void ChAuto::FSM_Channel_Client_Connect() {

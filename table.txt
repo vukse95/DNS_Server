@@ -1,0 +1,4 @@
+google.com
+8.8.8.8
+yahoo.com
+7.7.7.7
