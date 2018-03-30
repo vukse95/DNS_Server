@@ -116,8 +116,19 @@ void UserAuto::FSM_Server_Check_Local_Table(){
 	size_t pos;
 	int foundFlag = 0;
 
+
+	// Null terminate char array
+	for (int i = 0; i < strlen(DNSRequest); i++)
+	{
+		if (DNSRequest[i] == '\r')
+		{
+			DNSRequest[i] = '\0';
+		}
+	}
+
 	// Copy from char* to String
-	search.copy(DNSRequest, (unsigned)strlen(DNSRequest));
+	//search.copy(DNSRequest, strlen(DNSRequest));
+	search = DNSRequest;
 
 	tableFile.open("table.txt");
 
