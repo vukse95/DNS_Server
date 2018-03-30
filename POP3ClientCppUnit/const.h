@@ -45,7 +45,7 @@ const uint16 MSG_Server_To_Channel_Request_To_Root_Sent = 0x0010;
 const uint16 MSG_Channel_To_Server_Request_From_Root_Recived = 0x0011;
 const uint16 MSG_Server_Update_Table = 0x0012;
 
-const uint16 ROOT_STATUS = 1;
+const uint16 ROOT_STATUS = 0;
 /*
 const uint16 MSG_Mail = 0x0013;
 const uint16 MSG_User_Save_Mail = 0x0015;
