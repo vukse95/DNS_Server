@@ -140,9 +140,10 @@ void UserAuto::FSM_Server_Check_Local_Table(){
 			pos = line.find(search); // search
 			if (pos != string::npos) // string::npos is returned if string is not found
 			{
-				cout << "Found!";
+				cout << endl << "Found!";
 				getline(tableFile, line); // hop to next line to get IP address
 				strcpy(DNSIPAddress, line.c_str()); // Copy from string to char* array
+				cout << endl << DNSIPAddress << endl;
 				foundFlag = 1;
 				break;
 			}
@@ -254,7 +255,7 @@ void UserAuto::FSM_Server_Update_Table() {
 	// Append to file Domain Name and IP Address
 	ofstream tableFile;
 
-	tableFile.open("table.txt");
+	tableFile.open("table.txt", ios::app);
 
 	if (tableFile.is_open())
 	{

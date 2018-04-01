@@ -144,13 +144,13 @@ void ChAuto::FSM_Channel_Server_Recive() {
 		nReceivedBytes = recv(new_socket, ServerInput, strlen(ServerInput), 0);
 		if (nReceivedBytes > 0)
 		{
+			// Terminate string
+			ServerInput[nReceivedBytes] = '\0';
 			printf("%s", ServerInput);
 			break;
 		}
 		Sleep(100);
 	}
-
-	//a mogao sam u while samo da stavim, al ...
 	
 	PrepareNewMessage(0x00, MSG_Channel_To_Server_Request);
 	SetMsgToAutomate(USER_AUTOMATE_TYPE_ID);
